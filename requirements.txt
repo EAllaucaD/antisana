@@ -1,7 +1,8 @@
+numpy           
+scipy           
 pandas
-numpy
 matplotlib
-pmdarima
+pmdarima        
 scikit-learn
 google-generativeai
 python-dotenv
