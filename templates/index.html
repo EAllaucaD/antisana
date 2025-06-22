@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis y Predicción de Precipitación</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6; /* Ligeramente más suave que el blanco puro */
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+        h1, h2, h3 {
+            color: #2c3e50; /* Color de encabezado más oscuro y profesional */
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .graph-section, .metrics-section, .data-section, .recommendations-section {
+            background-color: #ffffff; /* Fondo blanco para las secciones */
+            border: 1px solid #e0e6ea; /* Borde suave */
+            border-radius: 8px;
+            padding: 25px; /* Un poco más de padding */
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,.08); /* Sombra más pronunciada */
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border: 1px solid #e0e6ea;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,.05);
+        }
+        .metrics-table th, .metrics-table td {
+            text-align: left;
+            vertical-align: middle;
+        }
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e6ea;
+            border-radius: 5px;
+            background-color: #ffffff;
+        }
+        .table thead th {
+            background-color: #e9ecef; /* Color para los encabezados de tabla */
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        /* --- Estilos Específicos para Recomendaciones de Gemini (Markdown) --- */
+        .recommendations-section h3 {
+            color: #0056b3; /* Azul más oscuro para los títulos principales de la IA */
+            border-bottom: 2px solid #007bff; /* Subrayado azul brillante */
+            padding-bottom: 8px;
+            margin-top: 25px;
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+        }
+        .recommendations-section h4 {
+            color: #0069d9; /* Azul ligeramente más claro para subtítulos de la IA */
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        .recommendations-section p {
+            line-height: 1.7; /* Mayor espacio entre líneas para legibilidad */
+            margin-bottom: 10px;
+            color: #34495e; /* Color de texto suave */
+        }
+        .recommendations-section ul,
+        .recommendations-section ol {
+            list-style-type: disc;
+            margin-left: 25px;
+            margin-bottom: 15px;
+            padding-left: 0;
+        }
+        .recommendations-section ol {
+            list-style-type: decimal;
+        }
+        .recommendations-section li {
+            margin-bottom: 8px;
+            color: #34495e;
+        }
+        .recommendations-section strong {
+            color: #2c3e50; /* Texto en negrita más oscuro para énfasis */
+            font-weight: 700;
+        }
+        .recommendations-section .alert-info {
+            background-color: #e0f7fa; /* Fondo azul muy claro */
+            border-color: #b2ebf2; /* Borde azul claro */
+            color: #007bff; /* Texto azul para el alert */
+            padding: 20px;
+            border-radius: 5px;
+        }
+        /* Fin de estilos para Gemini */
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4">Análisis y Predicción de Precipitación Mensual (P55)</h1>
+
+
+                <div class="data-section">
+            <h2>Predicciones Futuras (Próximos 24 Meses)</h2>
+            <div class="table-container">
+                {{ future_predictions_html | safe }}
+            </div>
+            <small class="form-text text-muted">Valores predichos de precipitación para los próximos 24 meses.</small>
+        </div>
+        
+        <div class="graph-section">
+            <h2>Gráfico: Serie de Tiempo de Precipitación</h2>
+            <img src="{{ url_for('static', filename='serie_temporal_precipitacion.png') }}" alt="Serie Temporal de Precipitación">
+            <small class="form-text text-muted text-center">Muestra la precipitación mensual a lo largo de todo el período de datos.</small>
+        </div>
+
+        <div class="graph-section">
+            <h2>Gráfico: Predicciones del Modelo SARIMA (24 Meses Futuros)</h2>
+            <img src="{{ url_for('static', filename='prediccion_precipitacion_sarima.png') }}" alt="Predicción SARIMA">
+            <small class="form-text text-muted text-center">Compara los datos de entrenamiento, los datos reales del conjunto de prueba y las predicciones del modelo, incluyendo los 24 meses futuros con sus intervalos de confianza.</small>
+        </div>
+        
+
+
+        <div class="recommendations-section">
+            <h2>Recomendaciones Basadas en IA (Gemini)</h2>
+            <div class="alert alert-info">
+                {{ gemini_recommendations | safe }} {# Usamos 'safe' para permitir formato Markdown básico si Gemini lo usa #}
+            </div>
+            <small class="form-text text-muted">Análisis e interpretaciones generadas por un modelo de IA de Google.</small>
+        </div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
