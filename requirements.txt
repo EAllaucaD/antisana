@@ -2,7 +2,7 @@ numpy
 scipy           
 pandas
 matplotlib
-pmdarima==2.0.2     
+pmdarima        
 scikit-learn
 google-generativeai
 python-dotenv
