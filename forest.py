@@ -261,19 +261,22 @@ def train_and_predict():
         # Actualizar el history_buffer con la nueva predicción para el siguiente paso
         history_buffer.append(next_predicted_value)
 
-    # Crear DataFrame final de predicciones futuras (Manteniendo 'Fecha' como datetime para graficar)
+    # Crear DataFrame final de predicciones futuras
+    # APLICAR FORMATO DE 2 DECIMALES AQUÍ PARA LA COLUMNA 'P55_5_Predicho'
     global_future_predictions_df = pd.DataFrame({
         'Fecha': future_dates_ml,
-        'P55_5_Predicho': future_predictions_ml
+        'P55_5_Predicho': [f"{val:.2f}" for val in future_predictions_ml] # Formatear a 2 decimales
     })
 
+    # AL GUARDAR EN CSV, TAMBIÉN NOS ASEGURAMOS DEL FORMATO
     global_future_predictions_df.to_csv(NOMBRE_CSV_PREDICCIONES_FUTURAS, index=False, date_format='%Y-%m-%d')
     print(f"\nPredicciones futuras del modelo ML (Random Forest) guardadas en '{NOMBRE_CSV_PREDICCIONES_FUTURAS}'")
 
     # --- Visualización de Predicciones Futuras ---
     plt.figure(figsize=(16, 8))
     plt.plot(y_series.index, y_series, label='Datos Históricos (P55_5)', color='blue')
-    plt.plot(global_future_predictions_df['Fecha'], global_future_predictions_df['P55_5_Predicho'], 
+    # Convertir las predicciones a float para graficar si se almacenaron como string
+    plt.plot(global_future_predictions_df['Fecha'], global_future_predictions_df['P55_5_Predicho'].astype(float), 
              label=f'Predicción Futura ML (Random Forest - {ANIOS_A_PREDECIR} años)', color='red', linestyle='--')
     plt.title(f'Precipitación Mensual P55_5: Datos Históricos y Predicción Futura con Random Forest')
     plt.xlabel('Fecha')
@@ -301,6 +304,7 @@ print("Modelo inicializado y predicciones generadas con éxito.")
 @app.route('/')
 def index():
     predictions_display_df = global_future_predictions_df.copy()
+    # No es necesario formatear a string aquí si ya se hizo al crear global_future_predictions_df
     predictions_display_df['Fecha'] = predictions_display_df['Fecha'].dt.strftime('%Y-%m-%d')
     predictions_html = predictions_display_df.to_html(index=False, classes='table table-striped table-hover')
     
@@ -334,8 +338,8 @@ def ask_ai():
     # Usar todas las predicciones futuras (36 meses)
     relevant_predictions = global_future_predictions_df
     
-    # Formatear las predicciones para el prompt
-    formatted_predictions = "\n".join([f"- {row['Fecha'].strftime('%Y-%m-%d')}: {row['P55_5_Predicho']:.2f} mm" 
+    # Formatear las predicciones para el prompt, asegurando los 2 decimales
+    formatted_predictions = "\n".join([f"- {row['Fecha'].strftime('%Y-%m-%d')}: {row['P55_5_Predicho']} mm" # Ya está formateado a string con 2 decimales
                                         for index, row in relevant_predictions.iterrows()])
     
     full_prompt = f"{prompt_base}\n{formatted_predictions}\n\n" \
