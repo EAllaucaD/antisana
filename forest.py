@@ -68,12 +68,13 @@ ANIOS_A_PREDECIR = 3 # Esto corresponde a los 36 meses
 TEST_SIZE_RATIO = 0.2
 NOMBRE_CSV_PREDICCIONES_FUTURAS = 'forest_predictions.csv' # Nombre para el CSV de predicciones futuras
 
-# Variables globales para almacenar predicciones y métricas
+# Variables globales para almacenar predicciones, métricas y datos históricos
 global_future_predictions_df = pd.DataFrame()
 global_metrics_ml = {}
 global_plot_path_test = 'static/prediccion_precipitacion_ml_test.png'
 global_plot_path_future = 'static/prediccion_precipitacion_ml_future.png'
 global_plot_path_monthly_avg = 'static/precipitacion_mensual_promedio_barras.png' # Nueva ruta para el gráfico de promedio mensual
+global_historical_data = None # Variable para almacenar la serie histórica
 
 # --- 1. Carga y Preprocesamiento de Datos ---
 def load_and_preprocess_data(ruta_csv):
@@ -147,11 +148,13 @@ def train_and_predict():
     Carga datos, entrena el modelo, evalúa y genera predicciones futuras.
     Actualiza variables globales y guarda gráficos.
     """
-    global global_future_predictions_df, global_metrics_ml, global_plot_path_monthly_avg
+    global global_future_predictions_df, global_metrics_ml, global_plot_path_monthly_avg, global_historical_data
 
     y_series = load_and_preprocess_data(RUTA_CSV)
     if y_series is None:
         return False # Indicar que hubo un error
+    
+    global_historical_data = y_series # Almacenar la serie histórica completa
 
     # --- Generar gráfico de promedio mensual ---
     monthly_avg_df = y_series.groupby(y_series.index.month).mean()
@@ -328,18 +331,18 @@ def index():
     predictions_html = predictions_display_df.to_html(index=False, classes='table table-striped table-hover')
     
     return render_template('index.html', 
-                           metrics=global_metrics_ml, 
-                           predictions_html=predictions_html,
-                           plot_test=global_plot_path_test,
-                           plot_future=global_plot_path_future,
-                           plot_monthly_avg=global_plot_path_monthly_avg, # Pasando la nueva ruta del gráfico
-                           plot_location='static/Imagen1.png', # Ruta a la imagen de ubicación
-                           ANIOS_A_PREDECIR=ANIOS_A_PREDECIR)
+                            metrics=global_metrics_ml, 
+                            predictions_html=predictions_html,
+                            plot_test=global_plot_path_test,
+                            plot_future=global_plot_path_future,
+                            plot_monthly_avg=global_plot_path_monthly_avg, # Pasando la nueva ruta del gráfico
+                            plot_location='static/Imagen1.png', # Ruta a la imagen de ubicación
+                            ANIOS_A_PREDECIR=ANIOS_A_PREDECIR)
 
 @app.route('/ask_ai', methods=['POST'])
 def ask_ai():
     """
-    Endpoint para obtener recomendaciones de la IA de Gemini basadas en las predicciones.
+    Endpoint para obtener recomendaciones de la IA de Gemini basadas en las predicciones futuras.
     """
     # Determinar el rango de fechas de las predicciones
     start_date_pred = global_future_predictions_df['Fecha'].min().strftime('%Y-%m-%d')
@@ -374,6 +377,55 @@ def ask_ai():
         print(f"Error en Gemini API: {e}")
 
     return jsonify({'response': ai_response})
+
+@app.route('/ask_ai_historical', methods=['POST'])
+def ask_ai_historical():
+    """
+    Endpoint para obtener recomendaciones de la IA de Gemini basadas en el patrón estacional histórico,
+    enfocadas únicamente en la gestión de riesgos.
+    """
+    global global_historical_data
+
+    if global_historical_data is None or global_historical_data.empty:
+        return jsonify({'response': 'No se encontraron datos históricos para generar recomendaciones.'})
+
+    # Calcular el promedio mensual histórico para el prompt
+    monthly_avg_df = global_historical_data.groupby(global_historical_data.index.month).mean()
+    meses_nombres = {1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio',
+                     7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'}
+    
+    # Formatear los promedios mensuales para el prompt
+    formatted_historical_data = "\n".join([f"- {meses_nombres[month]}: {avg_prec:.2f} mm" 
+                                            for month, avg_prec in monthly_avg_df.items()])
+
+    prompt_historical = f"""
+    Eres un asistente experto en gestión de riesgos hídricos y precipitación en la cuenca del Antisana.
+    Te proporcionaré datos de precipitación mensual promedio histórica (en milímetros) de la estación P55_5.
+    Estos datos reflejan el patrón estacional típico de la región de Quito, Pichincha, Ecuador, que es crucial para la gestión de riesgos.
+
+    Basado en estos promedios históricos, genera recomendaciones concisas y útiles exclusivamente para **Gestores de Plan de Riesgos**.
+    Tus recomendaciones deben abordar:
+    - Preparación ante posibles sequías o inundaciones según el patrón estacional.
+    - Estrategias de gestión de recursos hídricos.
+    - Necesidad de sistemas de alerta temprana.
+    - Planificación de infraestructura (drenajes, embalses, etc.).
+    - Consideraciones para la temporada de lluvias y secas.
+
+    Los datos de precipitación promedio mensual histórica son los siguientes:
+    {formatted_historical_data}
+
+    Por favor, estructura tus recomendaciones claramente bajo el título 'Para Gestión de Riesgos'. Incluye sugerencias específicas para meses o periodos si los datos lo justifican, haciendo énfasis en cómo el patrón histórico impacta los riesgos hídricos.
+    """
+
+    try:
+        response = gemini_model.generate_content(prompt_historical)
+        ai_response = response.text
+    except Exception as e:
+        ai_response = f"Lo siento, hubo un error al comunicarse con la IA para los datos históricos: {e}. Asegúrate de que tu clave API de Gemini sea válida y tengas conexión a internet."
+        print(f"Error en Gemini API (Histórico): {e}")
+
+    return jsonify({'response': ai_response})
+
 
 if __name__ == '__main__':
     if not os.path.exists('static'):

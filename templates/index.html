@@ -11,7 +11,6 @@
     <div class="container my-4">
         <h1 class="text-center mb-4">🌦️ Recomendaciones - Predicción de Precipitación estación P55</h1>
 
-        <!-- Ubicación de la Estación -->
         <div class="card mb-4">
             <div class="card-header">
                 <h2>📍 Ubicación de la Estación P55</h2>
@@ -22,7 +21,6 @@
             </div>
         </div>
 
-        <!-- Sección comentada (Métricas y gráfico de prueba) -->
         {# 
         <div class="card mb-4">
             <div class="card-header">
@@ -49,7 +47,6 @@
         </div>
         #}
 
-        <!-- Patrón Estacional -->
         <div class="card mb-4">
             <div class="card-header">
                 <h2>📅 Patrón Estacional de Precipitación</h2>
@@ -60,7 +57,18 @@
             </div>
         </div>
 
-        <!-- Predicciones Futuras -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>📚 Recomendaciones de la IA (Históricas)</h2>
+            </div>
+            <div class="card-body">
+                <p>💡 Obtén consejos de la IA basados en el patrón histórico de precipitación. Estas recomendaciones son clave para la planificación a largo plazo, entendiendo las tendencias climáticas usuales de la región.</p>
+                <button id="getAiHistoricalRecommendations" class="btn btn-info mb-3">🧠 Obtener Recomendaciones Históricas</button>
+                <div id="aiHistoricalResponse" class="mt-3 p-3 border rounded bg-light text-secondary">
+                    ⏳ Haz clic en el botón para generar las recomendaciones históricas.
+                </div>
+            </div>
+        </div>
         <div class="card mb-4">
             <div class="card-header">
                 <h2>🔮 Predicciones Futuras de Precipitación</h2>
@@ -73,7 +81,6 @@
             </div>
         </div>
 
-        <!-- Gráfico de Predicciones Futuras -->
         <div class="card mb-4">
             <div class="card-header">
                 <h2>📈 Gráfico de Predicciones Futuras</h2>
@@ -84,7 +91,6 @@
             </div>
         </div>
 
-        <!-- Recomendaciones de la IA -->
         <div class="card mb-4">
             <div class="card-header">
                 <h2>🤖 Recomendaciones de la IA (Gemini)</h2>
@@ -100,7 +106,6 @@
 
     </div>
 
-    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -125,6 +130,30 @@
             .catch(error => {
                 console.error('Error:', error);
                 aiResponseDiv.innerHTML = '❌ Error al obtener recomendaciones de la IA. Por favor, revisa la consola para más detalles.';
+            });
+        });
+
+        // Script para las nuevas recomendaciones históricas
+        document.getElementById('getAiHistoricalRecommendations').addEventListener('click', function () {
+            const aiHistoricalResponseDiv = document.getElementById('aiHistoricalResponse');
+            aiHistoricalResponseDiv.innerHTML = '<div class="spinner-border text-info" role="status"><span class="sr-only">Cargando...</span></div> Generando recomendaciones históricas... Esto puede tardar unos segundos.';
+
+            fetch('/ask_ai_historical', { // Asegúrate de que tu endpoint de Flask se llame así
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                let formattedResponse = data.response.replace(/\n/g, '<br>');
+                formattedResponse = formattedResponse.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); 
+                aiHistoricalResponseDiv.innerHTML = formattedResponse;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                aiHistoricalResponseDiv.innerHTML = '❌ Error al obtener recomendaciones históricas de la IA. Por favor, revisa la consola para más detalles.';
             });
         });
     </script>
