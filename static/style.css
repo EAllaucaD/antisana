@@ -1,0 +1,40 @@
+body {
+    background-color: #f5f8fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border-radius: 0.75rem;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.card-body p {
+    font-size: 1rem;
+}
+
+button.btn-primary {
+    background-color: #007bff;
+    border: none;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+button.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+img {
+    max-height: 400px;
+    object-fit: contain;
+}
+
+.table-responsive {
+    font-size: 0.95rem;
+}

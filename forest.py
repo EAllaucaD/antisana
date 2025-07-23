@@ -73,6 +73,7 @@ global_future_predictions_df = pd.DataFrame()
 global_metrics_ml = {}
 global_plot_path_test = 'static/prediccion_precipitacion_ml_test.png'
 global_plot_path_future = 'static/prediccion_precipitacion_ml_future.png'
+global_plot_path_monthly_avg = 'static/precipitacion_mensual_promedio_barras.png' # Nueva ruta para el gráfico de promedio mensual
 
 # --- 1. Carga y Preprocesamiento de Datos ---
 def load_and_preprocess_data(ruta_csv):
@@ -146,11 +147,29 @@ def train_and_predict():
     Carga datos, entrena el modelo, evalúa y genera predicciones futuras.
     Actualiza variables globales y guarda gráficos.
     """
-    global global_future_predictions_df, global_metrics_ml
+    global global_future_predictions_df, global_metrics_ml, global_plot_path_monthly_avg
 
     y_series = load_and_preprocess_data(RUTA_CSV)
     if y_series is None:
         return False # Indicar que hubo un error
+
+    # --- Generar gráfico de promedio mensual ---
+    monthly_avg_df = y_series.groupby(y_series.index.month).mean()
+    meses_nombres = {1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio',
+                     7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'}
+    monthly_avg_df = monthly_avg_df.rename(index=meses_nombres)
+
+    plt.figure(figsize=(10, 6))
+    plt.bar(monthly_avg_df.index, monthly_avg_df.values, color='skyblue')
+    plt.title('Precipitación Promedio Mensual (Patrón Estacional)')
+    plt.xlabel('Mes')
+    plt.ylabel('Precipitación Promedio P55_5 (mm)')
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    plt.savefig(global_plot_path_monthly_avg) 
+    plt.close()
+    print(f"Gráfico de barras de precipitación promedio mensual guardado como '{global_plot_path_monthly_avg}'")
+
 
     df_ml = create_features_for_ml_univariate(y_series, Lags_precipitacion, Rolling_windows_precipitacion)
     
@@ -234,6 +253,7 @@ def train_and_predict():
             if len(history_buffer) >= lag_val:
                 current_features_dict[f'target_lag_{lag_val}'] = history_buffer[-lag_val]
             else:
+                # Si no hay suficientes datos en el buffer para un lag, usar la media histórica como fallback
                 current_features_dict[f'target_lag_{lag_val}'] = y_series.mean()
 
         # Estadísticas de ventana móvil (usando el history_buffer)
@@ -243,6 +263,7 @@ def train_and_predict():
                 current_features_dict[f'target_rolling_mean_{window}'] = temp_series.tail(window).mean()
                 current_features_dict[f'target_rolling_std_{window}'] = temp_series.tail(window).std()
             else:
+                # Si no hay suficientes datos en el buffer para la ventana, usar la media/std histórica como fallback
                 current_features_dict[f'target_rolling_mean_{window}'] = y_series.mean()
                 current_features_dict[f'target_rolling_std_{window}'] = y_series.std()
 
@@ -262,7 +283,6 @@ def train_and_predict():
         history_buffer.append(next_predicted_value)
 
     # Crear DataFrame final de predicciones futuras
-    # APLICAR FORMATO DE 2 DECIMALES AQUÍ PARA LA COLUMNA 'P55_5_Predicho'
     global_future_predictions_df = pd.DataFrame({
         'Fecha': future_dates_ml,
         'P55_5_Predicho': [f"{val:.2f}" for val in future_predictions_ml] # Formatear a 2 decimales
@@ -304,7 +324,6 @@ print("Modelo inicializado y predicciones generadas con éxito.")
 @app.route('/')
 def index():
     predictions_display_df = global_future_predictions_df.copy()
-    # No es necesario formatear a string aquí si ya se hizo al crear global_future_predictions_df
     predictions_display_df['Fecha'] = predictions_display_df['Fecha'].dt.strftime('%Y-%m-%d')
     predictions_html = predictions_display_df.to_html(index=False, classes='table table-striped table-hover')
     
@@ -313,6 +332,8 @@ def index():
                            predictions_html=predictions_html,
                            plot_test=global_plot_path_test,
                            plot_future=global_plot_path_future,
+                           plot_monthly_avg=global_plot_path_monthly_avg, # Pasando la nueva ruta del gráfico
+                           plot_location='static/Imagen1.png', # Ruta a la imagen de ubicación
                            ANIOS_A_PREDECIR=ANIOS_A_PREDECIR)
 
 @app.route('/ask_ai', methods=['POST'])
@@ -339,8 +360,8 @@ def ask_ai():
     relevant_predictions = global_future_predictions_df
     
     # Formatear las predicciones para el prompt, asegurando los 2 decimales
-    formatted_predictions = "\n".join([f"- {row['Fecha'].strftime('%Y-%m-%d')}: {row['P55_5_Predicho']} mm" # Ya está formateado a string con 2 decimales
-                                        for index, row in relevant_predictions.iterrows()])
+    formatted_predictions = "\n".join([f"- {row['Fecha']}: {row['P55_5_Predicho']} mm" # Ya está formateado a string con 2 decimales
+                                         for index, row in relevant_predictions.iterrows()])
     
     full_prompt = f"{prompt_base}\n{formatted_predictions}\n\n" \
                   f"Por favor, estructura tus recomendaciones claramente en dos secciones: 'Para Agricultores' y 'Para Gestión de Riesgos'. Incluye sugerencias específicas para meses o periodos si los datos lo justifican."

@@ -3,107 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PreciPredict RF - Predicción de Precipitación</title>
+    <title>🌧️ Recomendaciones - Predicción de Precipitación estación P55</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container my-4">
-        <h1 class="text-center mb-4">Predicción de Precipitación (P55)</h1>
-        
-        <!-- 
-<div class="card mb-4">
-    <div class="card-header">
-        <h2>Métricas de Evaluación del Modelo</h2>
-    </div>
-    <div class="card-body">
-        <p>Estas métricas reflejan el rendimiento del modelo en el conjunto de prueba, indicando su precisión.</p>
-        <ul class="list-group list-group-flush">
-            {% for key, value in metrics.items() %}
-                <li class="list-group-item"><strong>{{ key }}:</strong> {{ value }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-</div>
+        <h1 class="text-center mb-4">🌦️ Recomendaciones - Predicción de Precipitación estación P55</h1>
 
-<div class="card mb-4">
-    <div class="card-header">
-        <h2>Gráfico de Rendimiento del Modelo (Conjunto de Prueba)</h2>
-    </div>
-    <div class="card-body text-center">
-        <p>Compara las precipitaciones reales vs. las predicciones del modelo en el conjunto de prueba.</p>
-        <img src="{{ url_for('static', filename='prediccion_precipitacion_ml_test.png') }}" alt="Gráfico de Predicciones en Prueba" class="img-fluid border rounded shadow-sm">
-    </div>
-</div>
--->
+        <!-- Ubicación de la Estación -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>📍 Ubicación de la Estación P55</h2>
+            </div>
+            <div class="card-body text-center">
+                <p>🗺️ Este mapa muestra la captación Diguchi (P55), se encuentran en la cuenca del Antisana, dentro del Área de Conservación Hídrica (ACH) Antisana.</p>
+                <img src="{{ url_for('static', filename='Imagen1.png') }}" alt="Ubicación de la Estación P55_5" class="img-fluid border rounded shadow-sm">
+            </div>
+        </div>
+
+        <!-- Sección comentada (Métricas y gráfico de prueba) -->
+        {# 
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>📊 Métricas de Evaluación del Modelo</h2>
+            </div>
+            <div class="card-body">
+                <p>📈 Estas métricas reflejan el rendimiento del modelo Random Forest en el conjunto de prueba.</p>
+                <ul class="list-group list-group-flush">
+                    {% for key, value in metrics.items() %}
+                        <li class="list-group-item"><strong>{{ key }}:</strong> {{ value }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
 
         <div class="card mb-4">
             <div class="card-header">
-                <h2>Predicciones Futuras de Precipitación</h2>
+                <h2>📉 Gráfico de Rendimiento del Modelo (Conjunto de Prueba)</h2>
+            </div>
+            <div class="card-body text-center">
+                <p>🔍 Este gráfico compara la precipitación real observada con las predicciones generadas por el modelo Random Forest.</p>
+                <img src="{{ url_for('static', filename='prediccion_precipitacion_ml_test.png') }}" alt="Gráfico de Predicciones en Prueba" class="img-fluid border rounded shadow-sm">
+            </div>
+        </div>
+        #}
+
+        <!-- Patrón Estacional -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>📅 Patrón Estacional de Precipitación</h2>
+            </div>
+            <div class="card-body text-center">
+                <p>📊 Este gráfico de barras muestra la precipitación promedio histórica por mes del año en la estación P55.</p>
+                <img src="{{ url_for('static', filename='precipitacion_mensual_promedio_barras.png') }}" alt="Precipitación Promedio Mensual" class="img-fluid border rounded shadow-sm">
+            </div>
+        </div>
+
+        <!-- Predicciones Futuras -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>🔮 Predicciones Futuras de Precipitación</h2>
             </div>
             <div class="card-body">
-                <p>Tabla con los valores de precipitación predicha para los próximos {{ ANIOS_A_PREDECIR * 12 }} meses.</p>
+                <p>📆 Tabla con los valores de precipitación para los próximos <strong>{{ ANIOS_A_PREDECIR * 12 }}</strong> meses.</p>
                 <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                     {{ predictions_html | safe }}
                 </div>
             </div>
         </div>
 
+        <!-- Gráfico de Predicciones Futuras -->
         <div class="card mb-4">
             <div class="card-header">
-                <h2>Gráfico de Predicciones Futuras</h2>
+                <h2>📈 Gráfico de Predicciones Futuras</h2>
             </div>
             <div class="card-body text-center">
-                <p>Visualización de los datos históricos y la predicción del modelo para el futuro.</p>
+                <p>🔎 Visualización de los datos históricos y la proyección del modelo Random Forest para los próximos años.</p>
                 <img src="{{ url_for('static', filename='prediccion_precipitacion_ml_future.png') }}" alt="Gráfico de Predicciones Futuras" class="img-fluid border rounded shadow-sm">
             </div>
         </div>
 
+        <!-- Recomendaciones de la IA -->
         <div class="card mb-4">
             <div class="card-header">
-                <h2>Recomendaciones de la IA (Gemini)</h2>
+                <h2>🤖 Recomendaciones de la IA (Gemini)</h2>
             </div>
             <div class="card-body">
-                <p>Obtén recomendaciones basadas en las predicciones de precipitación para agricultores y gestión de riesgos. La IA analizará las predicciones de los próximos meses.</p>
-                <button id="getAiRecommendations" class="btn btn-primary mb-3">Obtener Recomendaciones</button>
+                <p>💡 Obtén recomendaciones personalizadas basadas en las predicciones de precipitación. La IA analizará los datos y ofrecerá sugerencias útiles para agricultores y gestión de recursos hídricos.</p>
+                <button id="getAiRecommendations" class="btn btn-primary mb-3">🧠 Obtener Recomendaciones</button>
                 <div id="aiResponse" class="mt-3 p-3 border rounded bg-light text-secondary">
-                    Haz clic en el botón para generar las recomendaciones.
+                    ⏳ Haz clic en el botón para generar las recomendaciones.
                 </div>
             </div>
         </div>
 
     </div>
 
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        document.getElementById('getAiRecommendations').addEventListener('click', function() {
+        document.getElementById('getAiRecommendations').addEventListener('click', function () {
             const aiResponseDiv = document.getElementById('aiResponse');
             aiResponseDiv.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="sr-only">Cargando...</span></div> Generando recomendaciones... Esto puede tardar unos segundos.';
-            
-            // Ya no es necesario recopilar datos de la tabla desde el JS,
-            // la IA los toma directamente de la variable global en Python.
-            // Simplemente hacemos la llamada POST sin un body complejo.
 
             fetch('/ask_ai', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({}) // Cuerpo vacío o mínimo si no se envían datos específicos
+                body: JSON.stringify({})
             })
             .then(response => response.json())
             .then(data => {
-                // Formatear la respuesta para una mejor visualización (saltos de línea)
                 let formattedResponse = data.response.replace(/\n/g, '<br>');
-                // Convertir negritas de Markdown (**texto**) a HTML (<strong>texto</strong>)
                 formattedResponse = formattedResponse.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); 
                 aiResponseDiv.innerHTML = formattedResponse;
             })
             .catch(error => {
                 console.error('Error:', error);
-                aiResponseDiv.innerHTML = 'Error al obtener recomendaciones de la IA. Por favor, revisa la consola para más detalles.';
+                aiResponseDiv.innerHTML = '❌ Error al obtener recomendaciones de la IA. Por favor, revisa la consola para más detalles.';
             });
         });
     </script>
